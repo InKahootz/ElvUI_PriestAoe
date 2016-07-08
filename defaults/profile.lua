@@ -4,7 +4,7 @@ P['epa'] = {
 	['debug'] = {
 		['one'] = false,
 		['two'] = false,
-		['three'] = false,
+		['tpwree'] = false,
 		['four'] = false,
 		['testmode'] = false,
 	},
@@ -16,27 +16,13 @@ P['epa'] = {
 		['style'] = "texturedIcon",
 		['color'] = { r=1, g=1, b=0, a=1},
 		['threshold'] = 20,
-		['enable_if_have'] = true,
 		['hidecd'] = true,
 	},
 	['poh'] = {
 		['enable'] = true,
 		['style'] = "texturedIcon",
-		['numtargets'] = 3,
 		['color'] = { r=1, g=0.25, b=0.27, a=1},
 		['threshold'] = 20,
-		['always_best'] = true,
-		['SS'] = false,
-		['IF'] = false,
-		['incoming_heals'] = false,
-	},
-	['cop'] = {
-		['enable'] = true,
-		['style'] = "texturedIcon",
-		['numtargets'] = 3,
-		['color'] = { r=1, g=0.25, b=0.27, a=1},
-		['threshold'] = 20,
-		['always_best'] = true,
 		['incoming_heals'] = false,
 	},
 	['ch'] = {
@@ -48,10 +34,10 @@ P['epa'] = {
 		['minjumps'] = 2,
 		['maxhealth'] = 85,
 	},
-	['hr'] = {
+	['pwr'] = {
 		['enable'] = true,
 		['style'] = "texturedIcon",
-		['numtargets'] = 4,
+		['numtargets'] = 3,
 		['color'] = { r=1, g=1, b=0, a=1},
 		['threshold'] = 20,
 	},
@@ -60,7 +46,6 @@ P['epa'] = {
 		['style'] = "texturedIcon",
 		['color'] = { r=0.8, g=0.4, b=0, a=1},
 		['threshold'] = 20,
-		['enable_if_have'] = true,
 		['hidecd'] = true,
 	},
 }
@@ -94,7 +79,7 @@ P.unitframe.units['raid']['priestaoe'] = {
 		['xOffset'] = -4,
 		['yOffset'] = 0,
 	},
-	['hr'] = {
+	['pwr'] = {
 		['enable'] = true,
 		['size'] = 18,
 		['attachTo'] = 'RIGHT',
@@ -139,7 +124,7 @@ P.unitframe.units['raid40']['priestaoe'] = {
 		['xOffset'] = -4,
 		['yOffset'] = 0,
 	},
-	['hr'] = {
+	['pwr'] = {
 		['enable'] = true,
 		['size'] = 18,
 		['attachTo'] = 'RIGHT',

@@ -99,12 +99,12 @@ local function configTable()
 				get = function () return E.db.epa.debug.two end,
 				set = function (_, v) E.db.epa.debug.two = v end,	
 				},			
-			three = {
+			tpwree = {
 				order = getOrder(),
 				type = 'toggle',
-				name = 'Debug Three (Visib)',
-				get = function () return E.db.epa.debug.three end,
-				set = function (_, v) E.db.epa.debug.three = v end,	
+				name = 'Debug Tpwree (Visib)',
+				get = function () return E.db.epa.debug.tpwree end,
+				set = function (_, v) E.db.epa.debug.tpwree = v end,	
 				},			
 			four = {
 				order = getOrder(),
@@ -195,15 +195,6 @@ local function configTable()
 						width = "full",
 						get = function () return E.db.epa.coh.threshold end,
 						set = function (_, v) E.db.epa.coh.threshold = v end,
-			},
-			coh_enable_if_have = {
-						order = getOrder(),
-						type = "toggle",
-						name = "Show only while having the talent",
-						desc = "Enable this if you want to hide this status while using a talent spec that does not include Circle of Healing",
-						width = "full",
-						get = function () return E.db.epa.coh.enable_if_have end,
-						set = function (_, v) E.db.epa.coh.enable_if_have = v; EPA:UpdateTalents(); end,
 			},
 			coh_hidecd = {
 						order = getOrder(),
@@ -374,7 +365,7 @@ local function configTable()
 						order = getOrder(),
 						type = "range",
 						name = "Overheal threshold",
-						desc = "Show when less than this % of overheal will occur. 100 will always show the icon, pending other settings! (overrides min targets)",
+						desc = "Show when less than this % of overheal will occur. 100 will always show the icon.",
 						softMax = 100,
 						min = 0,
 						step = 1,
@@ -382,40 +373,11 @@ local function configTable()
 						get = function () return E.db.epa.poh.threshold end,
 						set = function (_, v) E.db.epa.poh.threshold = v end,
 			},
-			poh_enablebest = {
-						order = getOrder(),
-						type = "toggle",
-						name = "Always show best target in each group",
-						desc = "Shows best target in each group, even if the heal amount is below the threshold (based on Min Targets)",
-						width = "full",
-						get = function () return E.db.epa.poh.always_best end,
-						set = function (_, v) E.db.epa.poh.always_best = v end,
-				},
-			poh_numtargets = {
-						name = "Min Targets",
-						desc = "Minimum number to show icon with best target enabled",
-						order = getOrder(),
-						type = "range",
-						min = 1,
-						max = 5,
-						step = 1,
-						get = function() return E.db.epa.poh.numtargets end,
-						set = function(_, v) E.db.epa.poh.numtargets = v end,
-			},
-			poh_SS = {
-						order = getOrder(),
-						type = "toggle",
-						name = "Show best if Spirit Shell if ready",
-						desc = "Shows best target to cast poh on in each group, even if the heal amount is below the threshold (minimum 3 targets) while Spirit Shell is off CD.",
-						width = "full",
-						get = function () return E.db.epa.poh.SS end,
-						set = function (_, v) E.db.epa.poh.SS = v end,
-				},
 			poh_incomingheals = {
 						order = getOrder(),
 						type = "toggle",
 						name = "Subtract incoming heals",
-						desc = "Subtracts incoming heals from the health deficit before making the calculations (your own heals are excluded)",
+						desc = "Subtracts incoming heals from the health deficit before making the calculations. Can be helpful on chain casts to know the next target to hit. Recommend refresh rate < 0.75sec",
 						width = "full",
 						get = function () return E.db.epa.poh.incoming_heals end,
 						set = function (_, v) E.db.epa.poh.incoming_heals = v end,
@@ -473,203 +435,6 @@ local function configTable()
 				guiInline = true,
 				get = function(info) return E.db.unitframe.units['raid40']['priestaoe']['poh'][ info[#info] ] end,
 				set = function(info, value) E.db.unitframe.units['raid40']['priestaoe']['poh'][ info[#info] ] = value; EPA:ApplyIconOptions(); end,
-				args = {
-					enable = {
-						type = 'toggle',
-						order = getOrder(),
-						name = 'Enable',
-					},	
-					attachTo = {
-						type = 'select',
-						order = getOrder(),
-						name = 'Position',
-						values = auraAnchors,
-					},
-					size = {
-						type = 'range',
-						name = 'Size',
-						order = getOrder(),
-						min = 8, max = 30, step = 1,
-					},				
-					xOffset = {
-						order = getOrder(),
-						type = 'range',
-						name = 'xOffset',
-						min = -50, max = 50, step = 1,
-					},
-					yOffset = {
-						order = getOrder(),
-						type = 'range',
-						name = 'yOffset',
-						min = -50, max = 50, step = 1,
-					},	
-					test = {
-						order = getOrder(),
-						type = 'toggle',
-						name = 'Test Mode',
-						get = function () return E.db.epa.debug.testmode end,
-						set = function (_, v) E.db.epa.debug.testmode = v; EPA:ToggleTestMode(v) end,	
-					},
-				},
-			},
-		}
-	}
-	E.Options.args.epa.args.cop = {
-		type = 'group',
-		name = 'Clarity of Purpose',
-		order = getOrder(),
-		--get = function(info) return AS:CheckOption(info[#info]) end,
-		--set = function(info, value) AS:SetOption(info[#info], value) end,
-		guiInline = false,
-		args = {
-			cop_enable = {
-						order = getOrder(),
-						type = "toggle",
-						name = "Enable",
-						desc = "Enable Clarity of Purpose",
-						get = function()
-						return E.db.epa.cop.enable
-						end,
-						set = function(_, v)
-							E.db.epa.cop.enable = v
-								if not v then
-									if EPA.OnStatusDisable then
-										EPA:OnStatusDisable("cop")
-									end
-								end
-						end,					
-			},
-			cop_icon_style = {
-							name = "Style",
-							order = getOrder(),
-							type = "select",
-							get = function() return E.db.epa.cop.style end,
-							set = function(_, v) E.db.epa.cop.style = v; EPA:RetextureIcons('cop') end, 
-							values = {
-									['texturedIcon'] = "Textured Icon",
-									['coloredIcon'] = "Colored Icon",
-							},
-			},
-			cop_color = {
-						name = "Color",
-						order = getOrder(),
-						type = "color",
-						get = function()
-							local c = E.db.epa.cop.color
-							return c.r, c.g, c.b
-						end,
-						set = function(_, r, g, b)
-							local c = E.db.epa.cop.color
-							c.r, c.g, c.b = r, g, b
-						end,
-			},
-			cop_opacity = {
-						name = "Opacity",
-						desc = "Opacity for Clarity of Purpose",
-						order = getOrder(),
-						type = "range",
-						min = 0.05,
-						max = 1,
-						step = 0.05,
-						isPercent = true,
-						get = function() local color = E.db.epa.cop.color return color.a end,
-						set = function(_, a) local color = E.db.epa.cop.color color.a = a or 1 end,
-							--func = function() GridStatus:ResetClassColors() end,
-			},			
-			cop_threshold = {
-						order = getOrder(),
-						type = "range",
-						name = "Overheal threshold",
-						desc = "Show when less than this % of overheal will occur. 100 will always show the icon, pending other settings! (overrides min targets)",
-						softMax = 100,
-						min = 0,
-						step = 1,
-						width = "full",
-						get = function () return E.db.epa.cop.threshold end,
-						set = function (_, v) E.db.epa.cop.threshold = v end,
-			},
-			cop_enablebest = {
-						order = getOrder(),
-						type = "toggle",
-						name = "Always show best target in each group",
-						desc = "Shows best target in raid, even if the heal amount is below the threshold (based on Min Targets)",
-						width = "full",
-						get = function () return E.db.epa.cop.always_best end,
-						set = function (_, v) E.db.epa.cop.always_best = v end,
-				},
-			cop_numtargets = {
-						name = "Min Targets",
-						desc = "Minimum number to show icon with best target enabled",
-						order = getOrder(),
-						type = "range",
-						min = 1,
-						max = 5,
-						step = 1,
-						get = function() return E.db.epa.cop.numtargets end,
-						set = function(_, v) E.db.epa.cop.numtargets = v end,
-			},
-			cop_incomingheals = {
-						order = getOrder(),
-						type = "toggle",
-						name = "Subtract incoming heals",
-						desc = "Subtracts incoming heals from the health deficit before making the calculations (your own heals are excluded)",
-						width = "full",
-						get = function () return E.db.epa.cop.incoming_heals end,
-						set = function (_, v) E.db.epa.cop.incoming_heals = v end,
-			},
-			raidoptions = {
-				order = getOrder(),
-				type = 'group',
-				guiInline = true,
-				name = 'cop Icon Options',
-				get = function(info) return E.db.unitframe.units['raid']['priestaoe']['cop'][ info[#info] ] end,
-				set = function(info, value) E.db.unitframe.units['raid']['priestaoe']['cop'][ info[#info] ] = value; EPA:ApplyIconOptions(); end,
-				args = {
-					enable = {
-						type = 'toggle',
-						order = getOrder(),
-						name = 'Enable',
-					},	
-					attachTo = {
-						type = 'select',
-						order = getOrder(),
-						name = 'Position',
-						values = auraAnchors,
-					},
-					size = {
-						type = 'range',
-						name = 'Size',
-						order = getOrder(),
-						min = 8, max = 30, step = 1,
-					},				
-					xOffset = {
-						order = getOrder(),
-						type = 'range',
-						name = 'xOffset',
-						min = -50, max = 50, step = 1,
-					},
-					yOffset = {
-						order = getOrder(),
-						type = 'range',
-						name = 'yOffset',
-						min = -50, max = 50, step = 1,
-					},
-					test = {
-						order = getOrder(),
-						type = 'toggle',
-						name = 'Test Mode',
-						get = function () return E.db.epa.debug.testmode end,
-						set = function (_, v) E.db.epa.debug.testmode = v; EPA:ToggleTestMode(v) end,
-						},
-					},
-				},
-			raid40options = {
-				order = getOrder(),
-				type = 'group',
-				name = "Raid 40 Options",
-				guiInline = true,
-				get = function(info) return E.db.unitframe.units['raid40']['priestaoe']['cop'][ info[#info] ] end,
-				set = function(info, value) E.db.unitframe.units['raid40']['priestaoe']['cop'][ info[#info] ] = value; EPA:ApplyIconOptions(); end,
 				args = {
 					enable = {
 						type = 'toggle',
@@ -908,56 +673,56 @@ local function configTable()
 			},
 		}
 	}
-	E.Options.args.epa.args.hr = {
+	E.Options.args.epa.args.pwr = {
 		type = 'group',
-		name = 'Holy Radiance',
+		name = 'Power Word Radiance',
 		order = getOrder(),
 		--get = function(info) return AS:CheckOption(info[#info]) end,
 		--set = function(info, value) AS:SetOption(info[#info], value) end,
 		guiInline = false,
 		args = {
-			hr_enable = {
+			pwr_enable = {
 						order = getOrder(),
 						type = "toggle",
 						name = "Enable",
-						desc = "Enable Holy Radiance",
+						desc = "Enable PW: Radiance",
 						get = function()
-						return E.db.epa.hr.enable
+						return E.db.epa.pwr.enable
 						end,
 						set = function(_, v)
-							E.db.epa.hr.enable = v
+							E.db.epa.pwr.enable = v
 								if not v then
 									if EPA.OnStatusDisable then
-										EPA:OnStatusDisable("hr")
+										EPA:OnStatusDisable("pwr")
 									end
 								end
 						end,					
 			},
-			hr_icon_style = {
+			pwr_icon_style = {
 							name = "Style",
 							order = getOrder(),
 							type = "select",
-							get = function() return E.db.epa.hr.style end,
-							set = function(_, v) E.db.epa.hr.style = v; EPA:RetextureIcons('hr') end, 
+							get = function() return E.db.epa.pwr.style end,
+							set = function(_, v) E.db.epa.pwr.style = v; EPA:RetextureIcons('pwr') end, 
 							values = {
 									['texturedIcon'] = "Textured Icon",
 									['coloredIcon'] = "Colored Icon",
 							},
 			},
-			hr_color = {
+			pwr_color = {
 						name = "Color",
 						order = getOrder(),
 						type = "color",
 						get = function()
-							local c = E.db.epa.hr.color
+							local c = E.db.epa.pwr.color
 							return c.r, c.g, c.b
 						end,
 						set = function(_, r, g, b)
-							local c = E.db.epa.hr.color
+							local c = E.db.epa.pwr.color
 							c.r, c.g, c.b = r, g, b
 						end,
 			},
-			--[[hr_numtargets = {
+			--[[pwr_numtargets = {
 						name = "Min Targets",
 						desc = "Minimum number to show icon",
 						order = getOrder(),
@@ -965,10 +730,10 @@ local function configTable()
 						min = 1,
 						max = 6,
 						step = 1,
-						get = function() return E.db.epa.hr.numtargets end,
-						set = function(_, v) E.db.epa.hr.numtargets = v end,
+						get = function() return E.db.epa.pwr.numtargets end,
+						set = function(_, v) E.db.epa.pwr.numtargets = v end,
 			},]]
-			hr_opacity = {
+			pwr_opacity = {
 						name = "Opacity",
 						desc = "Opacity for Holy Radiance",
 						order = getOrder(),
@@ -977,11 +742,11 @@ local function configTable()
 						max = 1,
 						step = 0.05,
 						isPercent = true,
-						get = function() local color = E.db.epa.hr.color return color.a end,
-						set = function(_, a) local color = E.db.epa.hr.color color.a = a or 1 end,
+						get = function() local color = E.db.epa.pwr.color return color.a end,
+						set = function(_, a) local color = E.db.epa.pwr.color color.a = a or 1 end,
 							--func = function() GridStatus:ResetClassColors() end,
 			},			
-			hr_threshold = {
+			pwr_threshold = {
 						order = getOrder(),
 						type = "range",
 						name = "Overheal threshold",
@@ -990,16 +755,16 @@ local function configTable()
 						min = 0,
 						step = 1,
 						width = "full",
-						get = function () return E.db.epa.hr.threshold end,
-						set = function (_, v) E.db.epa.hr.threshold = v end,
+						get = function () return E.db.epa.pwr.threshold end,
+						set = function (_, v) E.db.epa.pwr.threshold = v end,
 			},
 			iconoptions = {
 				order = getOrder(),
 				type = 'group',
-				name = 'HR Icon Options',
+				name = 'PWR Icon Options',
 				guiInline = true,
-				get = function(info) return E.db.unitframe.units['raid']['priestaoe']['hr'][ info[#info] ] end,
-				set = function(info, value) E.db.unitframe.units['raid']['priestaoe']['hr'][ info[#info] ] = value; EPA:ApplyIconOptions(); end,
+				get = function(info) return E.db.unitframe.units['raid']['priestaoe']['pwr'][ info[#info] ] end,
+				set = function(info, value) E.db.unitframe.units['raid']['priestaoe']['pwr'][ info[#info] ] = value; EPA:ApplyIconOptions(); end,
 				args = {
 					enable = {
 						type = 'toggle',
@@ -1044,8 +809,8 @@ local function configTable()
 				type = 'group',
 				name = "Raid 40 Options",
 				guiInline = true,
-				get = function(info) return E.db.unitframe.units['raid40']['priestaoe']['hr'][ info[#info] ] end,
-				set = function(info, value) E.db.unitframe.units['raid40']['priestaoe']['hr'][ info[#info] ] = value; EPA:ApplyIconOptions(); end,
+				get = function(info) return E.db.unitframe.units['raid40']['priestaoe']['pwr'][ info[#info] ] end,
+				set = function(info, value) E.db.unitframe.units['raid40']['priestaoe']['pwr'][ info[#info] ] = value; EPA:ApplyIconOptions(); end,
 				args = {
 					enable = {
 						type = 'toggle',
@@ -1160,15 +925,6 @@ local function configTable()
 						width = "full",
 						get = function () return E.db.epa.wg.threshold end,
 						set = function (_, v) E.db.epa.wg.threshold = v end,
-			},
-			wg_enable_if_have = {
-						order = getOrder(),
-						type = "toggle",
-						name = "Show only while having the talent",
-						desc = "Enable this if you want to hide this status while using a talent spec that does not include Wild Groth",
-						width = "full",
-						get = function () return E.db.epa.wg.enable_if_have end,
-						set = function (_, v) E.db.epa.wg.enable_if_have = v; EPA:UpdateTalents(); end,
 			},
 			wg_hidecd = {
 						order = getOrder(),
@@ -1415,13 +1171,12 @@ local function configTable()
 							},
 						},
 					},
-
-					hr = {
+					pwr = {
 						order = getOrder(),
 						type = 'group',
-						name = 'HR Icon Options',
-						get = function(info) return E.db.unitframe.units['raid']['priestaoe']['hr'][ info[#info] ] end,
-						set = function(info, value) E.db.unitframe.units['raid']['priestaoe']['hr'][ info[#info] ] = value; EPA:ApplyIconOptions(); end,
+						name = 'PWR Icon Options',
+						get = function(info) return E.db.unitframe.units['raid']['priestaoe']['pwr'][ info[#info] ] end,
+						set = function(info, value) E.db.unitframe.units['raid']['priestaoe']['pwr'][ info[#info] ] = value; EPA:ApplyIconOptions(); end,
 						args = {
 							enable = {
 								type = 'toggle',
@@ -1651,13 +1406,12 @@ local function configTable()
 					},
 				},
 			},
-
-			hr = {
+			pwr = {
 				order = getOrder(),
 				type = 'group',
-				name = 'HR Icon Options',
-				get = function(info) return E.db.unitframe.units['raid40']['priestaoe']['hr'][ info[#info] ] end,
-				set = function(info, value) E.db.unitframe.units['raid40']['priestaoe']['hr'][ info[#info] ] = value; EPA:ApplyIconOptions(); end,
+				name = 'PWR Icon Options',
+				get = function(info) return E.db.unitframe.units['raid40']['priestaoe']['pwr'][ info[#info] ] end,
+				set = function(info, value) E.db.unitframe.units['raid40']['priestaoe']['pwr'][ info[#info] ] = value; EPA:ApplyIconOptions(); end,
 				args = {
 					enable = {
 						type = 'toggle',
