@@ -4,7 +4,7 @@ World of Warcraft addon to help select best target for various 'smart' area of e
 
 ## Installing
 
-[Curse Client Install](curse://mods.curse.com/addons/wow/elvui_priestaoe/download-client)
+[Curse](http://mods.curse.com/addons/wow/elvui_priestaoe)
 
 ### Getting Started
 
