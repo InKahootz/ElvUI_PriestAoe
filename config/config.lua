@@ -79,6 +79,7 @@ local function configTable()
 			}
 		}
 	}
+	--@alpha@
 	E.Options.args.epa.args.debug = {
 		order = getOrder(),
 		type = 'group',
@@ -122,7 +123,8 @@ local function configTable()
 				},
 			}
 	}
-
+	]]
+	--@end-alpha@
 	E.Options.args.epa.args.coh = {
 		type = 'group',
 		name = 'Circle of Healing',
