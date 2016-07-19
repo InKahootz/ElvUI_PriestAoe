@@ -3,7 +3,7 @@
 ## Notes: Shows optimal target to use various area healing spells
 ## RequiredDeps: ElvUI
 ## Author: Xellis-Blackhand
-## Version: 1.14
+## Version: 1.15
 
 core\load_core.xml
 defaults\load_defaults.xml
