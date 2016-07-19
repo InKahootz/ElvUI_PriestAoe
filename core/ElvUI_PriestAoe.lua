@@ -1121,7 +1121,7 @@ function EPA:SendStatusGained(uid,icon,numtargets,overheal)
 		button.show = true
 		button:Show()
 
-		if true then -- Emphasize
+		if false then -- Emphasize
 			parent.EmphasizeGlow:Show()
 			EPA.EmphasizeGlowFrameBuffer[icon] = parent;
 		end
@@ -1136,7 +1136,7 @@ function EPA:SendStatusLost(uid, icon)
 	button:ClearAllPoints()
 	button:SetParent(nil)
 
-	if true then -- Emphasize
+	if false then -- Emphasize
 		local frame = EPA.EmphasizeGlowFrameBuffer[icon]
 		if frame then
 			frame.EmphasizeGlow:Hide()

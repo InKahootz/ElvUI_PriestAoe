@@ -104,8 +104,8 @@ local function configTable()
 				order = getOrder(),
 				type = 'toggle',
 				name = 'Debug Tpwree (Visib)',
-				get = function () return E.db.epa.debug.tpwree end,
-				set = function (_, v) E.db.epa.debug.tpwree = v end,	
+				get = function () return E.db.epa.debug.three end,
+				set = function (_, v) E.db.epa.debug.three = v end,	
 				},			
 			four = {
 				order = getOrder(),
