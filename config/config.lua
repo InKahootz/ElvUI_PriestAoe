@@ -103,7 +103,7 @@ local function configTable()
 			three = {
 				order = getOrder(),
 				type = 'toggle',
-				name = 'Debug Tpwree (Visib)',
+				name = 'Debug Three (Visib)',
 				get = function () return E.db.epa.debug.three end,
 				set = function (_, v) E.db.epa.debug.three = v end,	
 				},			

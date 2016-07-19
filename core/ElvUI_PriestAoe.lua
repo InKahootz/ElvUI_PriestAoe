@@ -578,7 +578,9 @@ function EPA:OnUpdate(elapsed)
 			self:ClearWGStatus()
 		end
 	end
+	--@alpha@
 	start_timing();
+	--@end-alpha@
 	if update_timer >= E.private.epa.cycle_time then
 		update_timer = 0
 		EPA:RefreshAll()
@@ -609,11 +611,10 @@ function EPA:OnUpdate(elapsed)
 			self:RefreshWG()
 		end
 	end
-	-- -- Holy Nova
-	-- if settings_hn.enable then
-		-- self:RefreshHN()
-	-- end
+
+	--@alpha@
 	end_timing()
+	--@end-alpha@
 end
 
 local function DistanceSq(x1, y1, x2, y2)
