@@ -1,3 +1,26 @@
+local VUHDO_getCustomDestCluster;
+local VUHDO_RAID;
+function VUHDO_aoeAdvisorInitLocalOverrides()
+	VUHDO_getCustomDestCluster = _G["VUHDO_getCustomDestCluster"];
+	sIsIncoming = VUHDO_CONFIG["AOE_ADVISOR"]["subInc"];
+	sIsCooldown = VUHDO_CONFIG["AOE_ADVISOR"]["isCooldown"];
+	sIsIncCastTimeOnly = VUHDO_CONFIG["AOE_ADVISOR"]["subIncOnlyCastTime"];
+	sIsPerGroup = VUHDO_CONFIG["AOE_ADVISOR"]["isGroupWise"];
+
+	VUHDO_RAID = _G["VUHDO_RAID"];
+end
+
+
+
+local VUHDO_SPELL_ID_COH = 34861;
+local VUHDO_SPELL_ID_POH = 596;
+local VUHDO_SPELL_ID_CH = 1064;
+local VUHDO_SPELL_ID_WG = 48438;
+local VUHDO_SPELL_ID_TQ = 740;
+local VUHDO_SPELL_ID_LOD = 85222;
+local VUHDO_SPELL_ID_HR = 82327;
+local VUHDO_SPELL_ID_CB = 123986;
+
 VUHDO_AOE_SPELLS = {
 
 	-- Circle of Healing
@@ -13,6 +36,7 @@ VUHDO_AOE_SPELLS = {
 		["degress"] = 1,
 		["rangePow"] = 30 * 30, -- MOPok
 		["isRadial"] = true,
+		["areTargetsRandom"] = true,
 		--["isSourcePlayer"] = false,
 		["isDestRaid"] = true,
 		["thresh"] = 15000,
@@ -32,10 +56,11 @@ VUHDO_AOE_SPELLS = {
 		["avg"] = 0,
 		["max_targets"] = 5,
 		["degress"] = 1,
-		["rangePow"] = 30 * 30,
+		["rangePow"] = 20 * 20,
 		["isRadial"] = true,
+		["areTargetsRandom"] = true,
 		--["isSourcePlayer"] = false,
-		--["isDestRaid"] = false,
+		["isDestRaid"] = false,
 		["thresh"] = 20000,
 		["cone"] = 360,
 		--["checkCd"] = false,
@@ -56,6 +81,7 @@ VUHDO_AOE_SPELLS = {
 		["rangePow"] = 40 * 40,
 		["jumpRangePow"] = 11 * 11,
 		--["isRadial"] = false,
+		["areTargetsRandom"] = false,
 		--["isSourcePlayer"] = false,
 		["isDestRaid"] = true,
 		["thresh"] = 15000,
@@ -73,10 +99,11 @@ VUHDO_AOE_SPELLS = {
 		["icon"] = (GetSpellTexture(VUHDO_SPELL_ID_WG)),
 		["name"] = (GetSpellInfo(VUHDO_SPELL_ID_WG)),
 		["avg"] = 0,
-		["max_targets"] = 5,
+		["max_targets"] = 6,
 		["degress"] = 1,
 		["rangePow"] = 30 * 30,
 		["isRadial"] = true,
+		["areTargetsRandom"] = true,
 		--["isSourcePlayer"] = false,
 		["isDestRaid"] = true,
 		["thresh"] = 15000,
@@ -94,10 +121,11 @@ VUHDO_AOE_SPELLS = {
 		["icon"] = (GetSpellTexture(VUHDO_SPELL_ID_TQ)),
 		["name"] = (GetSpellInfo(VUHDO_SPELL_ID_TQ)),
 		["avg"] = 0,
-		["max_targets"] = 5,
+		["max_targets"] = 40,
 		["degress"] = 1,
 		["rangePow"] = 40 * 40,
 		["isRadial"] = true,
+		["areTargetsRandom"] = false,
 		["isSourcePlayer"] = true,
 		["isDestRaid"] = true,
 		["thresh"] = 15000,
@@ -115,37 +143,17 @@ VUHDO_AOE_SPELLS = {
 		["icon"] = (GetSpellTexture(VUHDO_SPELL_ID_LOD)),
 		["name"] = (GetSpellInfo(VUHDO_SPELL_ID_LOD)),
 		["avg"] = 0,
-		["max_targets"] = 6, -- MOP
+		["max_targets"] = 5,
 		["degress"] = 1,
 		["rangePow"] = 30 * 30,
 		["isRadial"] = true,
+		["areTargetsRandom"] = true,
 		["isSourcePlayer"] = true,
 		["isDestRaid"] = true,
 		["thresh"] = 8000,
 		["cone"] = 180,
 		--["checkCd"] = false,
 		["time"] = select(7, GetSpellInfo(VUHDO_SPELL_ID_LOD)) or 0,
-	},
-
-	-- Holy Radiance
-	["hr"] = {
-		--["present"] = false,
-		["id"] = VUHDO_SPELL_ID_HR,
-		["base"] = (5098 + 6230) * 0.3, --(ca. 0.25 + 0.5 target)
-		["divisor"] = 4859,
-		["icon"] = (GetSpellTexture(VUHDO_SPELL_ID_HR)),
-		["name"] = (GetSpellInfo(VUHDO_SPELL_ID_HR)),
-		["avg"] = 0,
-		["max_targets"] = 40,
-		["degress"] = 1,
-		["rangePow"] = 10 * 10,
-		["isRadial"] = true,
-		--["isSourcePlayer"] = false,
-		["isDestRaid"] = true,
-		["thresh"] = 10000,
-		["cone"] = 360,
-		--["checkCd"] = false,
-		["time"] = select(7, GetSpellInfo(VUHDO_SPELL_ID_HR)) or 0,
 	},
 
 	-- Chi Burst
@@ -161,6 +169,7 @@ VUHDO_AOE_SPELLS = {
 		["degress"] = 1,
 		["rangePow"] = 4, -- not POW actually
 		--["isRadial"] = true,
+		["areTargetsRandom"] = false,
 		["isLinear"] = true,
 		["isSourcePlayer"] = true,
 		["isDestRaid"] = true,
@@ -171,6 +180,7 @@ VUHDO_AOE_SPELLS = {
 		["time"] = select(7, GetSpellInfo(VUHDO_SPELL_ID_CB)) or 0,
 	},
 };
+local VUHDO_AOE_SPELLS = VUHDO_AOE_SPELLS;
 
 
 local function VUHDO_sortClusterComparator(aUnit, anotherUnit)

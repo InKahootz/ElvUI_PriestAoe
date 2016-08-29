@@ -37,12 +37,11 @@ local SPELLID_PWR = 194509
 local GLYPH_COH = 55675
 local GLYPH_CH  = 41522
 local GLYPH_WG  = 62970
-local ICON_COH = "Interface\\Icons\\Spell_Holy_CircleOfRenewal"
-local ICON_POH = "Interface\\Icons\\Spell_Holy_PrayerOfHealing02"
-local ICON_HN = "Interface\\Icons\\Spell_Holy_HolyNova"
-local ICON_CH = "Interface\\Icons\\Spell_Nature_HealingWaveGreater"
-local ICON_PWR = select(3,GetSpellInfo(SPELLID_PWR)) -- xxx
-local ICON_WG = "Interface\\Icons\\Ability_Druid_Flourish"
+local ICON_COH = GetSpellTexture(SPELLID_COH)
+local ICON_POH = GetSpellTexture(SPELLID_POH)
+local ICON_CH = GetSpellTexture(SPELLID_CH)
+local ICON_PWR = GetSpellTexture(SPELLID_PWR)
+local ICON_WG = GetSpellTexture(SPELLID_WG)
 
 local ICONTEXTURES = {
 	['coh'] = ICON_COH,
@@ -53,12 +52,12 @@ local ICONTEXTURES = {
 	['wg'] = ICON_WG,
 }
 
-local SPELLMOD_COH = 2.21666
-local SPELLMOD_POH = 2.21664
+local SPELLMOD_COH = 2.6
+local SPELLMOD_POH = 2
 local SPELLMOD_HN  = 1.125
-local SPELLMOD_CH  = 1.625
+local SPELLMOD_CH  = 4
 local SPELLMOD_PWR  = 2.5
-local SPELLMOD_WG  = 2.80
+local SPELLMOD_WG  = 2.38
 
 -- locals
 local UnitGUID, UnitPosition, UnitDistanceSquared, GetSpellCooldown, UnitHealth, UnitHealthMax, UnitIsVisible, UnitIsDeadOrGhost, UnitIsConnected, UnitIsEnemy, UnitIsCharmed, UnitIsUnit, UnitBuff, UnitGetIncomingHeals =
@@ -112,17 +111,25 @@ local poh_prev_best = {
 }
 
 local spellname_gopoh
-local coh_targets
+
+local coh_targets = 5
 local coh_coef_madd
 local coh_coef_m
+
 local poh_coef_madd
 local poh_coef_m
+
 local hn_coef_madd
 local hn_coef_m
+
 local ch_coef_madd
 local ch_coef_m
 local ch_range
-local wg_targets
+
+local wg_targets = 6
+
+local pwr_targets = 3
+
 local update_timer = 0
 local num_groups = 1
 local test_of_faith_mul
@@ -382,7 +389,7 @@ function EPA:UpdateRoster()
 
 		for j = 1, maxChildren do
 			local frame = child[j]
-			if frame and UnitExists(frame.unit) then
+			if frame and frame:IsVisible() and UnitExists(frame.unit) then
 				unitIDToFrame[frame.unit] = {i,j,frame}
 			end
 		end
@@ -392,15 +399,22 @@ end
 
 function EPA:UpdateTalents()
 	currentSpecializationInteger = GetSpecialization();
-	if (EPA.MyClass == "PRIEST") and (currentSpecializationInteger == TALENTTREE_PRIEST_HOLY) then
-		if (select(4,GetTalentInfo(7,3,1))) then
-			coh_targets = 5
-		else
-			coh_targets = nil
+	if (EPA.MyClass == "PRIEST") then
+		if (currentSpecializationInteger == TALENTTREE_PRIEST_HOLY) then
+			if (select(4,GetTalentInfo(7,3,1))) then -- row, column, specGroupIndex (always 1 for active spec)
+				coh_targets = 5
+			else
+				coh_targets = nil
+			end
+		elseif (currentSpecializationInteger == TALENTTREE_PRIEST_DISCIPLINE) then
+			if (select(4, GetTalentInfo(7,3,1))) then
+				pwr_targets = 5
+			else
+				pwr_targets = 3
+			end
 		end
-	else
-		coh_targets = nil
 	end
+	
 
 	-- lost coh? clear status
 	if settings_coh.enable and not coh_targets then
@@ -462,18 +476,6 @@ function EPA:UpdateNumGroups()
 	end
 end
 
-function EPA:GetDistance(unit1, unit2)
-	if UnitIsUnit(unit1, "player") then
-		return sqrt(UnitDistanceSquared(unit2))
-	elseif UnitIsUnit(unit2, "player") then
-		return sqrt(UnitDistanceSquared(unit1))
-	end
-
-	local x1, y1 = UnitPosition(unit1)
-	local x2, y2 = UnitPosition(unit2)
-	return self:ComputeDistance(x1, y1, x2, y2)
-end
-
 function EPA:ComputeDistance(x1, y1, x2, y2)
 	local dist
 	if x1 and y1 and x2 and y2 then
@@ -495,12 +497,7 @@ function EPA:ClearCoHStatus()
 end
 
 function EPA:ClearPoHStatus()
-	local button = EPA.icons['poh']
-	button.unit = nil
-	button.show = false
-	button:Hide()
-	button:ClearAllPoints()
-	button:SetParent(nil)
+	EPA:SendStatusLost(nil, 'poh')
 end
 
 function EPA:ClearCHStatus()
@@ -720,7 +717,14 @@ end
 
 -- Circle of Healing
 local function CohSortTargets(x, y)
-	return x.percent < y.percent
+	return x.percent < y.percent -- sort Lowest percetange health first
+end
+
+-- Things spellInfoTable will need
+
+function EPA:GetBestUnitForHeal(spellInfoTable)
+	-- if radial (most healing spells)
+	-- if chain (chain heal)
 end
 
 local targets = {}
@@ -883,11 +887,11 @@ function EPA:RefreshCH()
 	local ch_best_jumps = 0
 	local mastery = GetMasteryEffect()/100
 
-	local function depthSearch(inrange, numjumps)
+	local function depthSearch(inrange, numjumps, averageHeal)
 		local totalHealing = 0
 		local localHealing = 0
 		local hold, data
-		if numjumps < 3 then
+		if numjumps ~= 0 then
 			for _, unitid in pairs(inrange) do
 				local exclude = true
 				for i, v in pairs(excludeList) do
@@ -895,11 +899,11 @@ function EPA:RefreshCH()
 				end
 				if exclude then
 					table.insert(excludeList, unitid)
-					totalHealing = depthSearch(player_data[unitid].inrange, numjumps + 1, excludeList)
+					totalHealing = depthSearch(player_data[unitid].inrange, numjumps - 1, excludeList)
 				end
 			end
 		end
-		local ch_actual = ch_avg * .9^numjumps -- 10% decrease each
+		local ch_actual = averageHeal * .7^(4-numjumps) -- 30% decrease each
 		for _, unitid in pairs(inrange) do
 			data = player_data[unitid]
 			hold = math_min(data.deficit, (ch_actual * (1 + (1 - data.percent)*mastery)))
@@ -915,11 +919,10 @@ function EPA:RefreshCH()
 	for unitid, p1 in pairs(player_data) do
 		if IsUnitInRange(unitid) then
 			local curjumps = 1
-			local mult = UnitBuff(unitid, GetSpellInfo(61295), nil, "PLAYER") ~= nil and 1.25 or 1
 			twipe(excludeList)
 			table.insert(excludeList, unitid)
-			local amount = depthSearch(p1.inrange, 1, ch_avg*mult)
-			local total = amount + math_min(p1.deficit, ch_avg*mult) 
+			local amount = depthSearch(p1.inrange, 3, ch_avg)
+			local total = amount + math_min(p1.deficit, ch_avg) 
 			--print(total, amount)
 			if (not curbest) or (total > curbest.deficit) then
 				curbest = p1
@@ -988,52 +991,48 @@ function EPA:RefreshPWR()
 			for tunitid, p2 in pairs(player_data) do
 				local dist = unitid == tunitid and 0 or EPA:ComputeDistance(p1.positionx,p1.positiony,p2.positionx,p2.positiony) or 100
 				if dist <= 40 and p2.deficit > 0 then
-					local amount = math_min(p2.deficit, pwr_avg) 
-					if amount > 0 then
-						tinsert(PWRtargets, { amount = amount, percent = p2.percent, dist = dist })
+					if p2.deficit > 0 then
+						tinsert(PWRtargets, { deficit = p2.deficit, percent = p2.percent, dist = dist })
 					end
 				end
 			end
 
 			-- order candidate PWRtargets, get best
-			if #PWRtargets > 3 then
+			if #PWRtargets > pwr_targets then
 				tsort(PWRtargets, CohSortTargets)
 			end
 
 			local dists = 0
-			local hsum = math_min(p1.deficit, pwr_avg)
-			for ti = 1, math_min(3, #PWRtargets) do
-				hsum = hsum + PWRtargets[ti].amount
-				dists = math_max(dists, PWRtargets[ti].dist)
+			local totalProjectedHealing = math_min(p1.deficit, pwr_avg)
+			for i = 1, math_min(pwr_targets, #PWRtargets) do
+				totalProjectedHealing = totalProjectedHealing + math_min(PWRtargets[i].amount, pwr_avg)
+				dists = dists + math_max(dists, PWRtargets[i].dist)
 			end
-			-- dists = dists / math_min(pwr_PWRtargets or 5, #PWRtargets)
+			dists = dists / math_min(pwr_targets, #PWRtargets)
 
 			-- select best, buy try to keep same target
-			if hsum > pwr_best_amount or
-					(hsum == pwr_best_amount and (
-						unitid == pwr_prev_best.uid or
-						(pwr_best_uid ~= pwr_prev_best.uid and dists < pwr_best_dists)
-						)) then
-				pwr_best_uid = unitid
-				pwr_best_amount = hsum
-				pwr_best_pdata = p1
-				pwr_best_dists = dists
-				pwr_best_targets = #PWRtargets
+			if totalProjectedHealing > pwr_best_amount or
+				(totalProjectedHealing == pwr_best_amount and 
+					(unitid == pwr_prev_best.uid or
+					(pwr_best_uid ~= pwr_prev_best.uid and dists < pwr_best_dists))) then
+						pwr_best_uid = unitid
+						pwr_best_amount = totalProjectedHealing
+						pwr_best_pdata = p1
+						pwr_best_dists = dists
+						pwr_best_targets = #PWRtargets
 			end
 		end
 	end
 
 	-- send status to best
-	local overheal = math.min((1 - pwr_best_amount/(pwr_avg * 3)) * 100, 100)
+	local overheal = math.min((1 - (pwr_best_amount/(pwr_avg * pwr_targets))) * 100, 100)
 	if (pwr_best_uid ~= pwr_prev_best.uid or overheal >= settings_pwr.threshold) then
 		self:ClearPWRStatus()
 	end
 	if pwr_best_uid and overheal <= settings_pwr.threshold then
-		if pwr_prev_best.uid ~= pwr_best_uid or pwr_prev_best.guid ~= pwr_best_pdata.guid or pwr_prev_best.amount ~= pwr_best_amount or settings_pwr.threshold == 100 then
-			EPA:SendStatusGained(pwr_best_uid, 'pwr', pwr_best_targets, overheal)
-		end
+		EPA:SendStatusGained(pwr_best_uid, 'pwr', pwr_best_targets, overheal)
+		
 		pwr_prev_best.uid = pwr_best_uid
-		pwr_prev_best.guid = pwr_best_pdata.guid
 		pwr_prev_best.amount = pwr_best_amount
 	end
 end
@@ -1054,7 +1053,7 @@ function EPA:RefreshWG()
 		if IsUnitInRange(unitid) then
 			twipe(targets)
 			for tunitid, p2 in pairs(player_data) do
-				local dist = unitid == tunitid and 0 or EPA:GetDistance(unitid,tunitid) or 0
+				local dist = unitid == tunitid and 0 or EPA:ComputeDistance(p1.positionx,p1.positiony,p2.positionx,p2.positiony) or 0
 				if dist <= 30 and p2.deficit > 0 then
 					local amount = math_min(p2.deficit, wg_avg * p2.healmod)
 					if amount > 0 then
@@ -1145,63 +1144,6 @@ function EPA:SendStatusLost(uid, icon)
 	end
 end
 
--- --Holy Nova
--- local function HnSortTargets(x, y)
-	-- return x.dist < y.dist
--- end
-
--- local inrange = {}
--- function EPA:RefreshHN()
-	-- local player_data = player_data
-
-	-- self:ClearHnStatus()
-
-	-- if settings.first_groups_only and player_group > num_groups then
-		-- return
-	-- end
-
-	-- local hn_avg = self:GetHnAvg()
-
-	-- twipe(inrange)
-
-	-- local amount = 0
-
-	-- for unitid, p2 in pairs(player_data) do
-		-- if p2.guid == player_guid then
-			-- amount = math_min(p2.deficit, hn_avg * p2.healmod)
-		-- else
-			-- local dist = EPA:GetDistance(player, unitid)
-			-- if dist <= hn_testrange_sq then
-				-- tinsert(inrange, { player = p2, dist = dist })
-			-- end
-		-- end
-	-- end
-
-	-- -- sort targets by distance and select the 4 closest to the player
-	-- if #inrange > 4 then
-		-- tsort(inrange, HnSortTargets)
-	-- end
-
-	-- for ti = 1, math_min(4, #inrange) do
-		-- amount = amount + math_min(inrange[ti].player.deficit, hn_avg * inrange[ti].player.healmod)
-	-- end
-
-	-- if amount >= settings_hn.threshold then
-		-- self.core:SendStatusGained(	player_guid,
-									-- "alert_priestaoe_hn",
-									-- settings_hn.priority,
-									-- nil,
-									-- settings_hn.color,
-									-- tostring(math_floor(amount + 0.5)),
-									-- 1,
-									-- nil,
-									-- ICON_HN)
-		-- if settings_hn.emphasize and Emphasize then
-			-- Emphasize:EmphasizeUnit(player_guid, "priestaoe_hn", settings_hn.color)
-		-- end
-	-- end
--- end
-
 function EPA:HasGlyph(gid)
 	for i = 2,6,2 do
 		local _, _, _, id = GetGlyphSocketInfo(i)
@@ -1280,12 +1222,10 @@ end
 
 function EPA:GetWGAvg()
 	local healvalue = self:GetSpellAvg(SPELLMOD_WG*1.1)
-	--Harmony
-	local harmony = 1 + ((UnitBuff("player",GetSpellInfo(100977)) and GetMasteryEffect()/100) or 0 )
 	--SoTF
-	local sotf = (UnitBuff("player",GetSpellInfo(114108)) and 1.5) or 1
+	local sotf = (UnitBuff("player",GetSpellInfo(114108)) and 2) or 1
 	local haste = 1 + GetHaste()/100 
-	return healvalue*harmony*sotf*haste
+	return healvalue*sotf*haste
 end
 
 function EPA:print_r ( t )
