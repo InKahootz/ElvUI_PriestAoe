@@ -1,3 +1,9 @@
+1.17
+Added intial legion druid and shaman. Added 5 target radiance if talented.
+
+1.16
+Function cleanup. Preparing for writing generalized functions.
+
 1.15
 Legion initial. Only for priests.
 
