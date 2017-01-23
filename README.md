@@ -1,4 +1,4 @@
-:Warning: *As of patch 7.1.0, the API that allows this addon to work will not work in raid instances (where it was most useful). Therefore, development has ceased until furthur notice.*
+:warning: *As of patch 7.1.0, the API that allows this addon to work will not work in raid instances (where it was most useful). Therefore, development has ceased until furthur notice.*
 
 # ElvUI_PriestAoe
 World of Warcraft addon to help select best target for various 'smart' area of effect healing spells
